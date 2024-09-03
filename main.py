@@ -34,6 +34,7 @@ def menu():
                                 print("\nEntrada inválida. Digite um número inteiro.")
                     else:
                         print("\nNão existem mecânicos cadastrados!")
+                        input("\nPressione Enter para continuar...")
                 elif opcao_mecanicos == '5':
                     break
                 elif opcao_mecanicos == '6':
@@ -75,6 +76,7 @@ def menu():
                                 print("\nEntrada inválida. Digite um número inteiro.")
                     else:
                         print("\nNão existem serviços adicionados!")
+                        input("\nPressione Enter para continuar...")
                 elif opcao_servicos == '5':
                     break
                 elif opcao_servicos == '6':
