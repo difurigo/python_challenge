@@ -2,8 +2,6 @@ import os
 import re
 
 '''
-Remover mecânico - Valida pelo nome e isso não é legal, colocar validação por números
-
 Horários disponíveis - Acrescentar validação para horários entre 0 e 60 min
 
 Add serviços - Revisar método inteiro
@@ -103,6 +101,9 @@ def validar_nome():
     while len(nome) < 6:
         print("\nTamanho do nome deve ser maior que 5 caracteres!\n")
         nome = input("Digite o nome completo do novo mecânico: ")
+    while nome.isdigit():
+        print("\nO nome do mecânico não podem ser números.\n")
+        nome = input("Digite o nome completo do novo mecânico: ")
     
     return nome.strip().upper()
 
@@ -112,6 +113,9 @@ def validar_especialidade():
         especialidade = input("Digite a especialidade do mecânico (ex: Linha Diesel): ")
         while especialidade == "":
             print("A especialidade do mecânico não pode ser vazia!")
+            especialidade = input("Digite a especialidade do mecânico (ex: Linha Diesel): ")
+        while especialidade.isdigit():
+            print("\nA especialidade do mecânico não pode ser números.\n")
             especialidade = input("Digite a especialidade do mecânico (ex: Linha Diesel): ")
         try:
             int(especialidade)
@@ -132,10 +136,10 @@ def inserir_horarios(horarios): # Essa função realiza o processo auxiliar que 
             continue
 
         while True:
-            inicio = input("Digite o horário de início (ex: HH:MM): ").strip()
-            fim = input("Digite o horário de fim (ex: HH:MM): ").strip()
-
             try:
+                inicio = input("Digite o horário de início (ex: HH:MM): ").strip()
+                fim = input("Digite o horário de fim (ex: HH:MM): ").strip()
+                
                 if not inicio or not fim:
                     raise ValueError("O campo horário não pode ser vazio!")
                 
@@ -192,12 +196,13 @@ def listar_mecanicos(): # Essa função lista os mecânicos existentes.
             for horario in mecanico['horarios']:
                 print(f"  - {horario['dia_semana']}: Das {horario['inicio']} às {horario['fim']}")
             contador += 1
+        
+        input("\nPressione Enter para continuar...")
+
     # Caso não existam, faz a validação
     else:
         print("\nNão existem mecânicos adicionados!")
         input("\nPressione Enter para continuar...")
-    
-    input("\nPressione Enter para continuar...")
         
 def editar_mecanico(mecanico): # Essa função permite editar qualquer um dos mecânicos existentes (recebido via parâmetro).
     # Exibe as informações atuais do mecânico
@@ -244,32 +249,17 @@ def remover_mecanico(): # Essa função permite remover qualquer um dos mecânic
                 escolha_mecanico = int(escolha_mecanico)
                 if 1 <= escolha_mecanico <= len(mecanicos):
                     mecanico_escolhido = mecanicos[escolha_mecanico - 1]
-                    agendamento_servicos.editar_mecanico(mecanico_escolhido)
-                    break
+                    mecanicos.remove(mecanico_escolhido)
+                    print("\nMecânico removido com sucesso!")
+                    input("\nPressione Enter para continuar...")
+                    return
                 else:
                     print("\nOpção inválida. Digite um número válido da lista.")
             else:
-                print("\nEntrada inválida. Digite um número inteiro.")
+                print("\nEntrada inválida. Digite apenas números inteiros.")
     else:
         print("\nNão existem mecânicos cadastrados!")
         input("\nPressione Enter para continuar...") 
-
-        # Procura o nome do mecânico na lista
-        for mecanico in mecanicos:
-            if mecanico['nome'] == nome:
-                
-                # Remove e valida
-                mecanicos.remove(mecanico)
-                print("\nMecânico removido com sucesso!")
-                input("\nPressione Enter para continuar...")
-                return
-            
-        # Caso não encontre o nome
-        print("\nMecânico não encontrado!")
-        input("\nPressione Enter para continuar...")
-    
-    # Caso não existam, faz a validação
-        input("\nPressione Enter para continuar...")
 
 # Funções para as opções do menu de serviços
 def adicionar_servico(): # Essa função realiza o processo que relaciona um novo serviço à um mecânico e adiciona o serviço à lista. Ainda não tem integração com algum banco.
