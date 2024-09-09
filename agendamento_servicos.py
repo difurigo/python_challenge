@@ -2,8 +2,6 @@ import os
 import re
 
 '''
-Horários disponíveis - Acrescentar validação para horários entre 0 e 60 min
-
 Add serviços - Revisar método inteiro
 '''
 
@@ -129,7 +127,12 @@ def inserir_horarios(horarios): # Essa função realiza o processo auxiliar que 
     # Recebe as informações do dia disponível para realizar um atendimento/serviço
     while True:
         dia_semana = input("Digite o dia da semana (ex: Segunda): ").strip().upper()
+        
         dias_validos = ["SEGUNDA", "SEGUNDA-FEIRA", "TERÇA", "TERCA", "TERÇA-FEIRA", "TERCA-FEIRA", "QUARTA", "QUARTA-FEIRA", "QUINTA", "QUINTA-FEIRA", "SEXTA", "SEXTA-FEIRA", "SÁBADO", "SABADO", "DOMINGO"]
+        
+        horas_validas = ['00', '01', '02', '03', '04', '05', '06', '07', '08', '09', '10', '11', '12', '13', '14', '15', '16', '17', '18', '19', '20', '21', '22', '23', '24']
+        
+        minutos_validos = ['00', '01', '02', '03', '04', '05', '06', '07', '08', '09', '10', '11', '12', '13', '14', '15', '16', '17', '18', '19', '20', '21', '22', '23', '24', '25', '26', '27', '28', '29', '30', '31', '32', '33', '34', '35', '36', '37', '38', '39', '40', '41', '42', '43', '44', '45', '46', '47', '48', '49', '50', '51', '52', '53', '54', '55', '56', '57', '58', '59']
         
         if dia_semana not in dias_validos:
             print("\nDia da semana inválido!\n")
@@ -140,20 +143,26 @@ def inserir_horarios(horarios): # Essa função realiza o processo auxiliar que 
                 inicio = input("Digite o horário de início (ex: HH:MM): ").strip()
                 fim = input("Digite o horário de fim (ex: HH:MM): ").strip()
                 
+                if not inicio[:2] in horas_validas or not fim[:2] in horas_validas:
+                    raise ValueError('Horários inválidos. Insira horários possíveis.')
+                
+                if not inicio[3:] in minutos_validos or not fim[3:] in minutos_validos:
+                    raise ValueError('Horários inválidos. Insira horários possíveis.')
+
                 if not inicio or not fim:
                     raise ValueError("O campo horário não pode ser vazio!")
                 
                 # Validação simples para o formato de horas HH:MM
                 if len(inicio) != 5 or len(fim) != 5 or inicio[2] != ':' or fim[2] != ':':
-                    raise ValueError("Formato de horário inválido. Use HH:MM.")
+                    raise TypeError("Algun(s) formato(s) de horário inválido(s). Use HH:MM.")
                 
                 if not inicio[:2].isdigit() or not fim[:2].isdigit() or not inicio[3:].isdigit() or not fim[3:].isdigit():
-                    raise ValueError("Formato de horário inválido. Use HH:MM.")
+                    raise TypeError("Algun(s) formato(s) de horário inválido(s). Use HH:MM.")
 
                 horarios.append({"dia_semana": dia_semana, "inicio": inicio, "fim": fim})
                 break  # Sai do loop de horários
 
-            except ValueError as e:
+            except Exception as e:
                 print(f"\nErro: {e}\n")
         
         # Oferece a opção de adicionar mais horários em diversos dias da semana
