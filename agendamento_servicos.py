@@ -1,8 +1,9 @@
 import os
 import re
+from datetime import datetime
 
 '''
-Add serviços - Revisar método inteiro
+Colocar as validações para os editar
 '''
 
 # Funções para a exibição dos menus
@@ -270,6 +271,87 @@ def remover_mecanico(): # Essa função permite remover qualquer um dos mecânic
         print("\nNão existem mecânicos cadastrados!")
         input("\nPressione Enter para continuar...") 
 
+def validar_tema():  
+    validar = True
+    while validar:
+        tema = input("\nDigite o tema do serviço à realizar (ex: Troca de Bicos): ")
+        while tema == "":
+            print("O tema do serviço não pode ser vazio!")
+            tema = input("\nDigite o tema do serviço à realizar (ex: Troca de Bicos): ")
+        while tema.isdigit():
+            print("\nO tema do serviço não pode ser números.")
+            tema = input("\nDigite o tema do serviço à realizar (ex: Troca de Bicos): ")
+        try:
+            int(tema)
+        except ValueError:
+            validar = False
+            return tema.strip().upper()
+        else:
+            print("\nTema inválido!")
+
+def validar_descricao():
+    validar = True
+    while validar:
+        descricao = input("\nDigite a descrição do serviço à realizar: ")
+        while descricao == "":
+            print("A descrição do serviço não pode ser vazia!")
+            descricao = input("\nDigite a descrição do serviço à realizar: ")
+        while descricao.isdigit():
+            print("\nA descrição do serviço não pode ser números.")
+            descricao = input("\nDigite a descrição do serviço à realizar: ")
+        try:
+            int(descricao)
+        except ValueError:
+            validar = False
+            return descricao.strip()
+        else:
+            print("\nDescrição inválida!")
+
+def validar_data():
+    while True:
+        data = input("Digite a data da realização do serviço (ex: DD/MM/AAAA): ").strip()
+        
+        if not data:
+            print("A data do serviço não pode ser vazia!")
+            continue
+        
+        try:
+            data_validada = datetime.strptime(data, "%d/%m/%Y")
+            return data_validada.strftime("%d/%m/%Y")
+        except ValueError:
+            print("\nData inválida. Certifique-se de seguir o formato DD/MM/AAAA e que a data seja válida.\n")
+
+def validar_hora():
+    hora = input("Digite a hora da realização do serviço (ex: HH:MM): ")
+    horas_validas = ['00', '01', '02', '03', '04', '05', '06', '07', '08', '09', '10', '11', '12', '13', '14', '15', '16', '17', '18', '19', '20', '21', '22', '23', '24']
+        
+    minutos_validos = ['00', '01', '02', '03', '04', '05', '06', '07', '08', '09', '10', '11', '12', '13', '14', '15', '16', '17', '18', '19', '20', '21', '22', '23', '24', '25', '26', '27', '28', '29', '30', '31', '32', '33', '34', '35', '36', '37', '38', '39', '40', '41', '42', '43', '44', '45', '46', '47', '48', '49', '50', '51', '52', '53', '54', '55', '56', '57', '58', '59']
+
+    while True:
+        try:
+            hora = input("Digite o horário de início (ex: HH:MM): ").strip()
+                
+            if not hora[:2] in horas_validas :
+                raise ValueError('Horários inválidos. Insira horários possíveis.')
+                
+            if not hora[3:] in minutos_validos:
+                 raise ValueError('Horários inválidos. Insira horários possíveis.')
+            
+            if not hora:
+                raise ValueError("O campo horário não pode ser vazio!")
+                
+            # Validação simples para o formato de horas HH:MM
+            if len(hora) != 5 or hora[2] != ':':
+                raise TypeError("Algun(s) formato(s) de horário inválido(s). Use HH:MM.")
+                
+            if not hora[:2].isdigit() or not hora[3:].isdigit():
+                raise TypeError("Algun(s) formato(s) de horário inválido(s). Use HH:MM.")
+            
+            return hora.strip()
+
+        except Exception as e:
+            print(f"\nErro: {e}\n")
+
 # Funções para as opções do menu de serviços
 def adicionar_servico(): # Essa função realiza o processo que relaciona um novo serviço à um mecânico e adiciona o serviço à lista. Ainda não tem integração com algum banco.
     # Verifica se há mecânicos e faz inicia exibindo resumidamente cada um
@@ -294,25 +376,10 @@ def adicionar_servico(): # Essa função realiza o processo que relaciona um nov
                 print("\nEntrada inválida. Digite um número inteiro.")
 
         # Inicia o processo de recebimento das informações do novo serviço
-        tema = input("\nDigite o tema do serviço à realizar (ex: Troca de Bicos): ")
-        while tema == "":
-            print("O tema do serviço não pode ser vazio!")
-            tema = input("Digite o tema do serviço à realizar (ex: Troca de Bicos): ")
-        
-        descricao = input("Digite a descrição do serviço à realizar: ")
-        while descricao == "":
-            print("A descrição do serviço não pode ser vazia!")
-            descricao = input("Digite a descrição do serviço à realizar: ")
-
-        data = input("Digite a data da realização do serviço (ex: DD/MM/AAAA): ")
-        while data == "":
-            print("A data do serviço não pode ser vazia!")
-            data = input("Digite a data da realização do serviço (ex: DD/MM/AAAA): ")
-        
-        hora = input("Digite a hora da realização do serviço (ex: HH:MM): ")
-        while hora == "":
-            print("A hora do serviço não pode ser vazia!")
-            hora = input("Digite a hora da realização do serviço (ex: HH:MM): ")
+        tema = validar_tema()  
+        descricao = validar_descricao()
+        data = validar_data()
+        hora = validar_hora()
 
         # Adiciona na lista o novo serviço
         servicos.append(
@@ -343,12 +410,13 @@ def listar_servicos(): # Essa função lista os serviços existentes.
             print(f"Dia {servico['data']} às {servico['hora']}")
             print(f"Mecânico responsável: {servico['mecanico']['nome']}")
             contador += 1
+
+            input("\nPressione Enter para continuar...")
+
     # Caso não existam, faz a validação
     else:
         print("\nNão existem serviços adicionados!")
         input("\nPressione Enter para continuar...")
-    
-    input("\nPressione Enter para continuar...")
 
 def editar_servico(servico): # Essa função permite editar qualquer um dos serviços existentes (recebido via parâmetro).
     # Exibe as informações atuais do serviço

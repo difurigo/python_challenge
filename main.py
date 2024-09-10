@@ -34,7 +34,7 @@ def menu():
                                 print("\nEntrada inválida. Digite um número inteiro.")
                     else:
                         print("\nNão existem mecânicos cadastrados!")
-                        input("\nPressione Enter para continuar...")
+                        input("\nPressione Enter para retornar...")
                 elif opcao_mecanicos == '5':
                     break
                 elif opcao_mecanicos == '6':
@@ -42,6 +42,7 @@ def menu():
                     exit()
                 else:
                     print("\nOpção inválida!")
+                    input("\nPressione Enter para retornar...")
 
         elif opcao == '2':
             while True:
@@ -76,21 +77,24 @@ def menu():
                                 print("\nEntrada inválida. Digite um número inteiro.")
                     else:
                         print("\nNão existem serviços adicionados!")
-                        input("\nPressione Enter para continuar...")
+                        input("\nPressione Enter para retornar...")
                 elif opcao_servicos == '5':
                     break
                 elif opcao_servicos == '6':
                     print("\nSaindo do programa...")
                     exit()
                 else:
-                    print("\npção inválida!")
+                    print("\nOpção inválida!")
+                    input("\nPressione Enter para retornar...")
 
         elif opcao == '3':
             print("\nSaindo do programa...")
+            input("\nPressione Enter para retornar...")
             break
         else:
             quantidade_opcoes_menu_principal = 3
             print(f"\nOpção inválida! Selecione uma das {quantidade_opcoes_menu_principal} opcões.")
-
+            input("\nPressione Enter para retornar...")
+            
 if __name__ == '__main__':
     menu()
