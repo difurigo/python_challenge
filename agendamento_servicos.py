@@ -2,10 +2,6 @@ import os
 import re
 from datetime import datetime
 
-'''
-Colocar as validações para os editar
-'''
-
 # Funções para a exibição dos menus
 def exibir_menu_principal():
     limpar_terminal()
