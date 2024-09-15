@@ -1,6 +1,18 @@
 import os
 import re
 from datetime import datetime
+import json
+import time
+
+# Tratamento dos dados
+with open(r'Base-Mecânicos/mecanicos.json', 'r', encoding='utf-8') as arquivo_json:
+    mecanicos = json.load(arquivo_json)
+
+for mecanico in mecanicos:
+    nome_alterado = mecanico['nome'].upper()
+    mecanico['nome'] = nome_alterado
+
+servicos = []
 
 # Funções para a exibição dos menus
 def exibir_menu_principal():
@@ -54,10 +66,12 @@ def exibir_menu_servicos():
     opcao = input("Escolha uma opção: ")
     return opcao
 
-# Listas para armazenar mecanicos e serviços
-mecanicos = []
-servicos = []
+def sair_do_programa():
+        print("\nSaindo do programa...")
+        time.sleep(1.2)
+        print("Volte sempre!")
 
+# Funcionalidades do programa
 def validar_telefone():
     while True:
         telefone = input("Digite o telefone do mecânico com o DDD (ex: 11987654321): ")
@@ -187,6 +201,9 @@ def adicionar_mecanico(): # Essa função realiza o processo que adiciona um mec
     print("\nMecânico adicionado com sucesso!")
     input("\nPressione Enter para continuar...")
 
+    # with open(r'Base-Mecânicos/mecanicos.json', 'w', encoding='utf-8') as arquivo_json:
+    #     json.dump(mecanicos, arquivo_json)
+
 def listar_mecanicos(): # Essa função lista os mecânicos existentes. 
     # Verifica se existem mecânicos e exibe uma lista deles
     if mecanicos:
@@ -241,6 +258,9 @@ def editar_mecanico(mecanico): # Essa função permite editar qualquer um dos me
     print("\nServiço atualizado com sucesso!")
     input("\nPressione Enter para continuar...")
 
+    # with open(r'Base-Mecânicos/mecanicos.json', 'w', encoding='utf-8') as arquivo_json:
+    #     json.dump(mecanicos, arquivo_json)
+
 def remover_mecanico(): # Essa função permite remover qualquer um dos mecânicos existentes.
     # Se existerem mecânicos pede o nome do mecânico à ser removido
     if mecanicos:
@@ -250,7 +270,7 @@ def remover_mecanico(): # Essa função permite remover qualquer um dos mecânic
             print(f"    => Mecânico {contador} - {mecanico['nome']}")
             contador += 1
         while True:
-            escolha_mecanico = input("\nDigite o número do mecânico que deseja editar: ")
+            escolha_mecanico = input("\nDigite o número do mecânico que deseja remover: ")
             if escolha_mecanico.isdigit():
                 escolha_mecanico = int(escolha_mecanico)
                 if 1 <= escolha_mecanico <= len(mecanicos):
@@ -258,6 +278,9 @@ def remover_mecanico(): # Essa função permite remover qualquer um dos mecânic
                     mecanicos.remove(mecanico_escolhido)
                     print("\nMecânico removido com sucesso!")
                     input("\nPressione Enter para continuar...")
+
+                    # with open(r'Base-Mecânicos/mecanicos.json', 'w', encoding='utf-8') as arquivo_json:
+                    #     json.dump(mecanicos, arquivo_json)
                     return
                 else:
                     print("\nOpção inválida. Digite um número válido da lista.")

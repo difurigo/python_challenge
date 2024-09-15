@@ -38,7 +38,7 @@ def menu():
                 elif opcao_mecanicos == '5':
                     break
                 elif opcao_mecanicos == '6':
-                    print("\nSaindo do programa...")
+                    agendamento_servicos.sair_do_programa()
                     exit()
                 else:
                     print("\nOpção inválida!")
@@ -81,15 +81,14 @@ def menu():
                 elif opcao_servicos == '5':
                     break
                 elif opcao_servicos == '6':
-                    print("\nSaindo do programa...")
+                    agendamento_servicos.sair_do_programa()
                     exit()
                 else:
                     print("\nOpção inválida!")
                     input("\nPressione Enter para retornar...")
 
         elif opcao == '3':
-            print("\nSaindo do programa...")
-            input("\nPressione Enter para retornar...")
+            agendamento_servicos.sair_do_programa()
             break
         else:
             quantidade_opcoes_menu_principal = 3

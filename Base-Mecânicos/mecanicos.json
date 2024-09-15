@@ -1,0 +1,248 @@
+[
+    {
+        "nome": "Carlos Andrade",
+        "especialidade": "Suspensão",
+        "telefone": "(11) 98765-4321",
+        "email": "carlos.andrade@suspensao.com",
+        "horarios": [
+            { "dia_semana": "Segunda-feira", "inicio": "08:00", "fim": "18:00" },
+            { "dia_semana": "Terça-feira", "inicio": "08:00", "fim": "18:00" },
+            { "dia_semana": "Quarta-feira", "inicio": "08:00", "fim": "18:00" }
+        ]
+    },
+    {
+        "nome": "Maria Souza",
+        "especialidade": "Freios",
+        "telefone": "(21) 99876-5432",
+        "email": "maria.souza@freios.com",
+        "horarios": [
+            { "dia_semana": "Segunda-feira", "inicio": "09:00", "fim": "17:00" },
+            { "dia_semana": "Quinta-feira", "inicio": "09:00", "fim": "17:00" }
+        ]
+    },
+    {
+        "nome": "João Lima",
+        "especialidade": "Troca de Óleo",
+        "telefone": "(31) 91234-5678",
+        "email": "joao.lima@trocaoleo.com",
+        "horarios": [
+            { "dia_semana": "Segunda-feira", "inicio": "10:00", "fim": "16:00" },
+            { "dia_semana": "Terça-feira", "inicio": "10:00", "fim": "16:00" },
+            { "dia_semana": "Sexta-feira", "inicio": "10:00", "fim": "16:00" }
+        ]
+    },
+    {
+        "nome": "Ana Carvalho",
+        "especialidade": "Alinhamento e Balanceamento",
+        "telefone": "(41) 98765-6543",
+        "email": "ana.carvalho@balanceamento.com",
+        "horarios": [
+            { "dia_semana": "Terça-feira", "inicio": "08:30", "fim": "18:30" },
+            { "dia_semana": "Quarta-feira", "inicio": "08:30", "fim": "18:30" },
+            { "dia_semana": "Sábado", "inicio": "09:00", "fim": "14:00" }
+        ]
+    },
+    {
+        "nome": "Roberto Silva",
+        "especialidade": "Eletricista",
+        "telefone": "(51) 91234-8765",
+        "email": "roberto.silva@eletricista.com",
+        "horarios": [
+            { "dia_semana": "Segunda-feira", "inicio": "08:00", "fim": "18:00" },
+            { "dia_semana": "Quinta-feira", "inicio": "08:00", "fim": "18:00" },
+            { "dia_semana": "Sábado", "inicio": "08:00", "fim": "12:00" }
+        ]
+    },
+    {
+        "nome": "Patrícia Almeida",
+        "especialidade": "Diagnóstico Eletrônico",
+        "telefone": "(61) 99876-9876",
+        "email": "patricia.almeida@diagnostico.com",
+        "horarios": [
+            { "dia_semana": "Segunda-feira", "inicio": "09:00", "fim": "17:00" },
+            { "dia_semana": "Quarta-feira", "inicio": "09:00", "fim": "17:00" }
+        ]
+    },
+    {
+        "nome": "Pedro Fernandes",
+        "especialidade": "Injeção Eletrônica",
+        "telefone": "(71) 98876-6543",
+        "email": "pedro.fernandes@injeçaoeletronica.com",
+        "horarios": [
+            { "dia_semana": "Terça-feira", "inicio": "10:00", "fim": "19:00" },
+            { "dia_semana": "Quarta-feira", "inicio": "10:00", "fim": "19:00" },
+            { "dia_semana": "Sábado", "inicio": "09:00", "fim": "13:00" }
+        ]
+    },
+    {
+        "nome": "Fernanda Costa",
+        "especialidade": "Mecânica Geral",
+        "telefone": "(81) 98765-1234",
+        "email": "fernanda.costa@mecanica.com",
+        "horarios": [
+            { "dia_semana": "Segunda-feira", "inicio": "07:30", "fim": "17:30" },
+            { "dia_semana": "Quinta-feira", "inicio": "07:30", "fim": "17:30" }
+        ]
+    },
+    {
+        "nome": "Ricardo Mendes",
+        "especialidade": "Escapamentos",
+        "telefone": "(31) 91234-4321",
+        "email": "ricardo.mendes@escapamentos.com",
+        "horarios": [
+            { "dia_semana": "Segunda-feira", "inicio": "08:00", "fim": "18:00" },
+            { "dia_semana": "Terça-feira", "inicio": "08:00", "fim": "18:00" },
+            { "dia_semana": "Quinta-feira", "inicio": "08:00", "fim": "18:00" }
+        ]
+    },
+    {
+        "nome": "Juliana Ribeiro",
+        "especialidade": "Reparos Rápidos",
+        "telefone": "(91) 98765-6789",
+        "email": "juliana.ribeiro@reparos.com",
+        "horarios": [
+            { "dia_semana": "Quarta-feira", "inicio": "09:00", "fim": "18:00" },
+            { "dia_semana": "Sexta-feira", "inicio": "09:00", "fim": "18:00" }
+        ]
+    },
+    {
+        "nome": "Lucas Oliveira",
+        "especialidade": "Troca de Pneus",
+        "telefone": "(71) 98765-7654",
+        "email": "lucas.oliveira@pneus.com",
+        "horarios": [
+            { "dia_semana": "Segunda-feira", "inicio": "08:00", "fim": "16:00" },
+            { "dia_semana": "Quarta-feira", "inicio": "08:00", "fim": "16:00" }
+        ]
+    },
+    {
+        "nome": "Beatriz Santos",
+        "especialidade": "Direção Hidráulica",
+        "telefone": "(51) 99876-3456",
+        "email": "beatriz.santos@direcao.com",
+        "horarios": [
+            { "dia_semana": "Terça-feira", "inicio": "09:00", "fim": "17:00" },
+            { "dia_semana": "Quinta-feira", "inicio": "09:00", "fim": "17:00" }
+        ]
+    },
+    {
+        "nome": "Felipe Duarte",
+        "especialidade": "Ar Condicionado",
+        "telefone": "(11) 98765-9876",
+        "email": "felipe.duarte@arcondicionado.com",
+        "horarios": [
+            { "dia_semana": "Segunda-feira", "inicio": "08:00", "fim": "17:00" },
+            { "dia_semana": "Sexta-feira", "inicio": "08:00", "fim": "17:00" }
+        ]
+    },
+    {
+        "nome": "Helena Gomes",
+        "especialidade": "Motor",
+        "telefone": "(31) 99876-5432",
+        "email": "helena.gomes@motor.com",
+        "horarios": [
+            { "dia_semana": "Quarta-feira", "inicio": "09:00", "fim": "18:00" },
+            { "dia_semana": "Sábado", "inicio": "08:00", "fim": "12:00" }
+        ]
+    },
+    {
+        "nome": "Vinícius Freitas",
+        "especialidade": "Caixa de Câmbio",
+        "telefone": "(21) 98765-9876",
+        "email": "vinicius.freitas@cambio.com",
+        "horarios": [
+            { "dia_semana": "Segunda-feira", "inicio": "08:30", "fim": "18:30" },
+            { "dia_semana": "Quarta-feira", "inicio": "08:30", "fim": "18:30" }
+        ]
+    },
+    {
+        "nome": "Rafaela Costa",
+        "especialidade": "Injeção Eletrônica",
+        "telefone": "(31) 99876-5432",
+        "email": "rafaela.costa@injeçãomotor.com",
+        "horarios": [
+            { "dia_semana": "Segunda-feira", "inicio": "09:00", "fim": "17:00" },
+            { "dia_semana": "Terça-feira", "inicio": "09:00", "fim": "17:00" }
+        ]
+    },
+    {
+        "nome": "André Martins",
+        "especialidade": "Carroceria",
+        "telefone": "(41) 98765-4321",
+        "email": "andre.martins@carroceria.com",
+        "horarios": [
+            { "dia_semana": "Quinta-feira", "inicio": "08:00", "fim": "18:00" },
+            { "dia_semana": "Sexta-feira", "inicio": "08:00", "fim": "18:00" }
+        ]
+    },
+    {
+        "nome": "Gustavo Alves",
+        "especialidade": "Suspensão",
+        "telefone": "(51) 98765-4321",
+        "email": "gustavo.alves@suspensao.com",
+        "horarios": [
+            { "dia_semana": "Segunda-feira", "inicio": "07:30", "fim": "17:30" },
+            { "dia_semana": "Quinta-feira", "inicio": "07:30", "fim": "17:30" }
+        ]
+    },
+    {
+        "nome": "Thiago Rodrigues",
+        "especialidade": "Motor",
+        "telefone": "(71) 98765-6789",
+        "email": "thiago.rodrigues@motor.com",
+        "horarios": [
+            { "dia_semana": "Segunda-feira", "inicio": "09:00", "fim": "18:00" },
+            { "dia_semana": "Quarta-feira", "inicio": "09:00", "fim": "18:00" }
+        ]
+    },
+    {
+        "nome": "Larissa Neves",
+        "especialidade": "Caixa de Câmbio",
+        "telefone": "(81) 98765-1234",
+        "email": "larissa.neves@cambiocaixa.com",
+        "horarios": [
+            { "dia_semana": "Terça-feira", "inicio": "08:30", "fim": "18:30" },
+            { "dia_semana": "Sexta-feira", "inicio": "08:30", "fim": "18:30" }
+        ]
+    },
+    {
+        "nome": "Eduardo Santos",
+        "especialidade": "Freios",
+        "telefone": "(31) 91234-7654",
+        "email": "eduardo.santos@freios.com",
+        "horarios": [
+            { "dia_semana": "Segunda-feira", "inicio": "09:00", "fim": "17:00" },
+            { "dia_semana": "Quarta-feira", "inicio": "09:00", "fim": "17:00" }
+        ]
+    },
+    {
+        "nome": "Paulo Ribeiro",
+        "especialidade": "Suspensão",
+        "telefone": "(71) 98765-1234",
+        "email": "paulo.ribeiro@suspensao.com",
+        "horarios": [
+            { "dia_semana": "Segunda-feira", "inicio": "08:00", "fim": "18:00" },
+            { "dia_semana": "Sexta-feira", "inicio": "08:00", "fim": "18:00" }
+        ]
+    },
+    {
+        "nome": "Monique Ferreira",
+        "especialidade": "Alinhamento",
+        "telefone": "(31) 91234-5432",
+        "email": "monique.ferreira@alinhamento.com",
+        "horarios": [
+            { "dia_semana": "Segunda-feira", "inicio": "08:30", "fim": "18:30" },
+            { "dia_semana": "Quinta-feira", "inicio": "08:30", "fim": "18:30" }
+        ]
+    },
+    {
+        "nome": "Júlio Cesar",
+        "especialidade": "Pneus",
+        "telefone": "(41) 98765-5432",
+        "email": "julio.cesar@pneus.com",
+        "horarios": [
+            { "dia_semana": "Segunda-feira", "inicio": "09:00", "fim": "18:00" },
+            { "dia_semana": "Sexta-feira", "inicio": "09:00", "fim": "18:00" }
+        ]
+    }
+]
