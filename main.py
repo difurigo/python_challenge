@@ -16,8 +16,10 @@ def menu():
                 elif opcao_mecanicos == '4':
                     agendamento_servicos.editar_mecanico()
                 elif opcao_mecanicos == '5':
-                    break
+                    agendamento_servicos.exportar_mecanicos_para_json()
                 elif opcao_mecanicos == '6':
+                    break
+                elif opcao_mecanicos == '7':
                     agendamento_servicos.sair_do_programa()
                     exit()
                 else:
@@ -26,7 +28,6 @@ def menu():
 
         elif opcao == '2':
             while True:
-                agendamento_servicos.mecanicos
                 opcao_servicos = agendamento_servicos.exibir_menu_servicos()
                 if opcao_servicos == '1':
                     agendamento_servicos.adicionar_servico()
@@ -35,32 +36,12 @@ def menu():
                 elif opcao_servicos == '3':
                     agendamento_servicos.remover_servico()
                 elif opcao_servicos == '4':
-                    if agendamento_servicos.servicos:
-                        print("\nServiços disponíveis:")
-                        contador = 1
-                        for servico in agendamento_servicos.servicos:
-                            print(f"    => Serviço {contador} - {servico['tema']}")
-                            print(f"    Descrição: {servico['descricao']}")
-                            print(f"    Mecânico responsável: {servico['mecanico']['nome']}")
-                            contador += 1
-                        while True:
-                            escolha_servico = input("\nDigite o número do serviço que deseja editar: ")
-                            if escolha_servico.isdigit():
-                                escolha_servico = int(escolha_servico)
-                                if 1 <= escolha_servico <= len(agendamento_servicos.servicos):
-                                    servico_escolhido = agendamento_servicos.servicos[escolha_servico - 1]
-                                    agendamento_servicos.editar_servico(servico_escolhido)
-                                    break
-                                else:
-                                    print("\nOpção inválida. Digite um número válido da lista.")
-                            else:
-                                print("\nEntrada inválida. Digite um número inteiro.")
-                    else:
-                        print("\nNão existem serviços adicionados!")
-                        input("\nPressione Enter para retornar...")
+                    agendamento_servicos.editar_servico()
                 elif opcao_servicos == '5':
-                    break
+                    agendamento_servicos.exportar_servicos_para_json()
                 elif opcao_servicos == '6':
+                    break
+                elif opcao_servicos == '7':
                     agendamento_servicos.sair_do_programa()
                     exit()
                 else:

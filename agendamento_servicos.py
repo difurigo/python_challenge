@@ -1,3 +1,10 @@
+import os
+import re
+from datetime import datetime
+import json
+import time
+import oracledb
+
 '''
 NÃO ESQUEÇA DE CRIAR A TABELA PROF!!
 
@@ -10,14 +17,17 @@ CREATE TABLE tb_mecanico (
     email VARCHAR(50), 
     horarios VARCHAR(500)
 )
-'''
 
-import os
-import re
-from datetime import datetime
-import json
-import time
-import oracledb
+CREATE TABLE tb_servico (
+    id_servico INTEGER GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+    tema VARCHAR2(100) NOT NULL,
+    descricao VARCHAR2(255),
+    data_servico DATE,
+    hora_servico VARCHAR2(5),
+    id_mecanico NUMBER,
+    FOREIGN KEY (id_mecanico) REFERENCES tb_mecanico(id_mecanico)
+)
+'''
 
 with open(r'arquivos_banco/secret.json', 'r') as secret:
     credenciais = json.load(secret)
@@ -56,8 +66,9 @@ def exibir_menu_mecanicos():
     print("2) Listar Mecânicos")
     print("3) Remover Mecânico")
     print("4) Editar Mecânico")
-    print("5) Voltar para o menu principal")
-    print("6) Sair do programa")
+    print("5) Exportar lista de mecânicos para um arquivo JSON")
+    print("6) Voltar para o menu principal")
+    print("7) Sair do programa")
     print("================================================================")
 
     # Requisita a opção que o usuário deseja
@@ -72,8 +83,9 @@ def exibir_menu_servicos():
     print("2) Listar Serviços")
     print("3) Remover Serviço")
     print("4) Editar Serviço")
-    print("5) Voltar para o menu principal")
-    print("6) Sair do programa")
+    print("5) Exportar lista de serviços para um arquivo JSON")
+    print("6) Voltar para o menu principal")
+    print("7) Sair do programa")
     print("================================================================")
 
     # Requisita a opção que o usuário deseja
@@ -332,30 +344,24 @@ def editar_mecanico():
 def remover_mecanico():
     with oracledb.connect(dsn=dsn, user=usr, password=pwd) as conn:
         cursor_oracle = conn.cursor()
+
         cursor_oracle.execute("SELECT COUNT(*) FROM tb_mecanico")
         if cursor_oracle.fetchone()[0] == 0:
-            print("\nNão existem mecânicos cadastrados!")
+            print("\nNão existem mecânicos cadastrados para remover!")
             input("\nPressione Enter para continuar...")
             return
 
-    listar_mecanicos()
-    mecanico_id = input("\nDigite o ID do mecânico que deseja remover: ")
+        listar_mecanicos()
+        mecanico_id = input("\nDigite o ID do mecânico que deseja remover: ")
+        confirmacao = input("Tem certeza que deseja remover este mecânico? (s/n): ").strip().lower()
 
-    with oracledb.connect(dsn=dsn, user=usr, password=pwd) as conn:
-        cursor_oracle = conn.cursor()
+        if confirmacao == 's':
+            cursor_oracle.execute("DELETE FROM tb_mecanico WHERE id_mecanico = :1", [mecanico_id])
+            conn.commit()
+            print("\nMecânico removido com sucesso!")
+        else:
+            print("\nOperação de remoção cancelada.")
 
-        # Verifica se o mecânico existe antes de tentar removê-lo
-        cursor_oracle.execute("SELECT COUNT(*) FROM tb_mecanico WHERE id_mecanico = :1", [mecanico_id])
-        if cursor_oracle.fetchone()[0] == 0:
-            print("\nMecânico não encontrado!")
-            input("\nPressione Enter para continuar...")
-            return
-
-        # Remove o mecânico
-        cursor_oracle.execute("DELETE FROM tb_mecanico WHERE id_mecanico = :1", [mecanico_id])
-        conn.commit()
-
-        print("\nMecânico removido com sucesso!")
         input("\nPressione Enter para continuar...")
 
 # Funcionalidades do programa
@@ -380,13 +386,13 @@ def validar_tema(texto_input):
 def validar_descricao(texto_input):
     validar = True
     while validar:
-        descricao = input(f"\n{texto_input}")
+        descricao = input(f"{texto_input}")
         while descricao == "":
             print("A descrição do serviço não pode ser vazia!")
-            descricao = input(f"\n{texto_input}")
+            descricao = input(f"{texto_input}")
         while descricao.isdigit():
             print("\nA descrição do serviço não pode ser números.")
-            descricao = input(f"\n{texto_input}")
+            descricao = input(f"{texto_input}")
         try:
             int(descricao)
         except ValueError:
@@ -410,14 +416,13 @@ def validar_data(texto_input):
             print("\nData inválida. Certifique-se de seguir o formato DD/MM/AAAA e que a data seja válida.\n")
 
 def validar_hora(texto_input):
-    hora = input(texto_input)
     horas_validas = ['00', '01', '02', '03', '04', '05', '06', '07', '08', '09', '10', '11', '12', '13', '14', '15', '16', '17', '18', '19', '20', '21', '22', '23', '24']
         
     minutos_validos = ['00', '01', '02', '03', '04', '05', '06', '07', '08', '09', '10', '11', '12', '13', '14', '15', '16', '17', '18', '19', '20', '21', '22', '23', '24', '25', '26', '27', '28', '29', '30', '31', '32', '33', '34', '35', '36', '37', '38', '39', '40', '41', '42', '43', '44', '45', '46', '47', '48', '49', '50', '51', '52', '53', '54', '55', '56', '57', '58', '59']
 
     while True:
         try:
-            hora = input("Digite o horário de início (ex: HH:MM): ").strip()
+            hora = input(texto_input).strip()
                 
             if not hora[:2] in horas_validas :
                 raise ValueError('Horários inválidos. Insira horários possíveis.')
@@ -441,133 +446,235 @@ def validar_hora(texto_input):
             print(f"\nErro: {e}\n")
 
 # Funções para as opções do menu de serviços
-def adicionar_servico(): # Essa função realiza o processo que relaciona um novo serviço à um mecânico e adiciona o serviço à lista. Ainda não tem integração com algum banco.
-    # Verifica se há mecânicos e faz inicia exibindo resumidamente cada um
-    if mecanicos:
-        print("\nMecânicos disponíveis:")
-        contador = 1
-        for mecanico in mecanicos:
-            print(f"    => Mecânico {contador} - {mecanico['nome']}")
-            contador += 1
+def adicionar_servico():
+    with oracledb.connect(dsn=dsn, user=usr, password=pwd) as conn:
+        cursor_oracle = conn.cursor()
         
-        # Depois pede para o usuário escolher um e verifica se a escolha faz sentido
-        while True:
-            escolha_mecanico = input("\nDigite o número do mecânico escolhido: ")
-            if escolha_mecanico.isdigit():
-                escolha_mecanico = int(escolha_mecanico)
-                if 1 <= escolha_mecanico <= len(mecanicos):
-                    mecanico_escolhido = mecanicos[escolha_mecanico - 1]
+        # Listar mecânicos disponíveis
+        cursor_oracle.execute("SELECT id_mecanico, nome_mecanico FROM tb_mecanico")
+        mecanicos = cursor_oracle.fetchall()
+        
+        if mecanicos:
+            print("\nMecânicos disponíveis:")
+            for id, (id_mecanico, nome) in enumerate(mecanicos, start=1):
+                print(f"    => Mecânico {id} - {nome}")
+            
+            # Solicita a escolha do mecânico
+            while True:
+                escolha_mecanico = input("\nDigite o número do mecânico escolhido: ")
+                if escolha_mecanico.isdigit() and 1 <= int(escolha_mecanico) <= len(mecanicos):
+                    id_mecanico_escolhido = mecanicos[int(escolha_mecanico) - 1][0]
                     break
                 else:
                     print("\nOpção inválida. Digite um número válido da lista.")
-            else:
-                print("\nEntrada inválida. Digite um número inteiro.")
+        
+            # Recebe os dados do serviço
+            tema = validar_tema("Digite o tema do serviço à realizar (ex: Troca de Bicos): ")  
+            descricao = validar_descricao("Digite a descrição do serviço à realizar: ")
+            data = validar_data("Digite a data da realização do serviço (ex: DD/MM/AAAA): ")
+            hora = validar_hora("Digite a hora da realização do serviço (ex: HH:MM): ")
 
-        # Inicia o processo de recebimento das informações do novo serviço
-        tema = validar_tema("Digite o tema do serviço à realizar (ex: Troca de Bicos): ")  
-        descricao = validar_descricao("Digite a descrição do serviço à realizar: ")
-        data = validar_data("Digite a data da realização do serviço (ex: DD/MM/AAAA): ")
-        hora = validar_hora("Digite a hora da realização do serviço (ex: HH:MM): ")
+            # Insere o serviço no banco
+            cursor_oracle.execute("""
+                INSERT INTO tb_servico (tema, descricao, data_servico, hora_servico, id_mecanico)
+                VALUES (:tema, :descricao, TO_DATE(:data, 'DD/MM/YYYY'), :hora, :id_mecanico)
+            """, [tema, descricao, data, hora, id_mecanico_escolhido])
 
-        # Adiciona na lista o novo serviço
-        servicos.append(
-            {"tema": tema, 
-            "descricao": descricao, 
-            "data": data, 
-            "hora": hora,
-            "mecanico": mecanico_escolhido})
-
-        # Realiza a validação
-        print("\nServiço adicionado com sucesso!")
-        input("\nPressione Enter para continuar...")
-
-    # Caso não existam mecânicos para adicionar o serviço
-    else:
-        print("\nNão existem mecânicos cadastrados!")
-        input("\nPressione Enter para continuar...")
-
-def listar_servicos(): # Essa função lista os serviços existentes.
-    # Verifica se existem mecânicos e exibe uma lista deles
-    if servicos:
-        print("\n| Serviços adicionados |")
-        contador = 1
-        for servico in servicos:
-            print(f"\nServiço {contador}:")
-            print(f"Tema: {servico['tema']}")
-            print(f"Descrição: {servico['descricao']}")
-            print(f"Dia {servico['data']} às {servico['hora']}")
-            print(f"Mecânico responsável: {servico['mecanico']['nome']}")
-            contador += 1
-
+            conn.commit()
+            print("\nServiço adicionado com sucesso!")
+            input("\nPressione Enter para continuar...")
+        
+        else:
+            print("\nNão existem mecânicos cadastrados!")
             input("\nPressione Enter para continuar...")
 
-    # Caso não existam, faz a validação
-    else:
-        print("\nNão existem serviços adicionados!")
-        input("\nPressione Enter para continuar...")
-
-def editar_servico(servico): # Essa função permite editar qualquer um dos serviços existentes (recebido via parâmetro).
-    # Exibe as informações atuais do serviço
-    print(f"\n1) Serviço: {servico['tema']}")
-    print(f"2) Descrição: {servico['descricao']}")
-    print(f"3) Data: {servico['data']}")
-    print(f"4) Hora: {servico['hora']}")
-    print(f"5) Mecânico responsável: {servico['mecanico']['nome']}")
-
-    print("\nEscolha o número do campo que deseja editar (Para mais de um campo, separe por vírgulas")
-    campos = input("Campo(s): ")
-    campos = campos.replace(" ", "")
-    
-    if "," in campos:
-        campos = campos.split(",")
-
-    if not isinstance(campos, list):
-        list(campos)
-
-    for opcao in campos:
-        if opcao == '1':
-            # Permite a alteração de cada campo
-            novo_tema = validar_tema("Digite o novo tema do serviço: ")
-            servico['tema'] = novo_tema
-
-        elif opcao == '2':
-            nova_descricao = validar_descricao("Digite a nova descrição do serviço: ")
-            servico['descricao'] = nova_descricao
-
-        elif opcao == '3':
-            nova_data = validar_data("Digite a nova data do serviço: ")
-            servico['data'] = nova_data
+def listar_servicos():
+    with oracledb.connect(dsn=dsn, user=usr, password=pwd) as conn:
+        cursor_oracle = conn.cursor()
         
-        elif opcao == '4':
-            nova_hora = validar_hora("Digite a nova data do serviço: ")
-            servico['hora'] = nova_hora
-
+        # Consulta todos os serviços com os dados do mecânico
+        cursor_oracle.execute("""
+            SELECT s.id_servico, s.tema, s.descricao, TO_CHAR(s.data_servico, 'DD/MM/YYYY'), s.hora_servico, m.nome_mecanico 
+            FROM tb_servico s
+            INNER JOIN tb_mecanico m 
+            ON s.id_mecanico = m.id_mecanico
+        """)
+        servicos = cursor_oracle.fetchall()
+        
+        if servicos:
+            print("\n| Serviços adicionados |")
+            for id, (id_servico, tema, descricao, data, hora, nome_mecanico) in enumerate(servicos, start=1):
+                print(f"\nServiço {id}:")
+                print(f"Tema: {tema}")
+                print(f"Descrição: {descricao}")
+                print(f"Dia {data} às {hora}")
+                print(f"Mecânico responsável: {nome_mecanico}")
+            input("\nPressione Enter para continuar...")
+        
         else:
-            print("Opção inválida. Escolha uma opção válida.")
+            print("\nNão existem serviços adicionados!")
+            input("\nPressione Enter para continuar...")
+
+def editar_servico():
+    with oracledb.connect(dsn=dsn, user=usr, password=pwd) as conn:
+        cursor_oracle = conn.cursor()
         
-        # Realiza a validação
+        # Verifica se há serviços cadastrados
+        cursor_oracle.execute("SELECT COUNT(*) FROM tb_servico")
+        if cursor_oracle.fetchone()[0] == 0:
+            print("\nNão existem serviços cadastrados!")
+            input("\nPressione Enter para continuar...")
+            return
+
+    listar_servicos()  # Exibe a lista de serviços existentes
+    servico_id = input("\nDigite o ID do serviço que deseja editar: ")
+
+    with oracledb.connect(dsn=dsn, user=usr, password=pwd) as conn:
+        cursor_oracle = conn.cursor()
+        
+        # Recupera o serviço selecionado
+        cursor_oracle.execute("""
+            SELECT tema, descricao, TO_CHAR(data_servico, 'DD/MM/YYYY'), hora_servico, id_mecanico 
+            FROM tb_servico 
+            WHERE id_servico = :1
+        """, [servico_id])
+        servico = cursor_oracle.fetchone()
+        
+        if not servico:
+            print("\nServiço não encontrado.")
+            input("\nPressione Enter para continuar...")
+            return
+
+        tema, descricao, data, hora, id_mecanico = servico
+
+        print(f"\n1) Tema: {tema}")
+        print(f"2) Descrição: {descricao}")
+        print(f"3) Data: {data}")
+        print(f"4) Hora: {hora}")
+        print(f"5) Mecânico responsável (ID): {id_mecanico}")
+
+        campos = input("\nEscolha o número do campo que deseja editar (separado por vírgulas): ").replace(" ", "").split(",")
+        novos_valores = []
+
+        for opcao in campos:
+            if opcao == '1':
+                novo_tema = validar_tema("Digite o novo tema do serviço: ")
+                novos_valores.append(("tema", novo_tema))
+            elif opcao == '2':
+                nova_descricao = validar_descricao("Digite a nova descrição do serviço: ")
+                novos_valores.append(("descricao", nova_descricao))
+            elif opcao == '3':
+                nova_data = validar_data("Digite a nova data do serviço (DD/MM/AAAA): ")
+                novos_valores.append(("data_servico", nova_data))
+            elif opcao == '4':
+                nova_hora = validar_hora("Digite a nova hora do serviço (HH:MM): ")
+                novos_valores.append(("hora_servico", nova_hora))
+            elif opcao == '5':
+                listar_mecanicos()
+                novo_id_mecanico = input("Digite o novo ID do mecânico responsável: ")
+                novos_valores.append(("id_mecanico", novo_id_mecanico))
+
+        # Executa a atualização para cada campo alterado
+        for campo, valor in novos_valores:
+            cursor_oracle.execute(f"UPDATE tb_servico SET {campo} = :1 WHERE id_servico = :2", [valor, servico_id])
+
+        conn.commit()
         print("\nServiço atualizado com sucesso!")
         input("\nPressione Enter para continuar...")
 
-def remover_servico(): # Essa função permite remover qualquer um dos serviços existentes.
-    # Se existerem serviços, chama a função "listar_serviços()" e pede o número correspondendente ao serviço
-    if servicos:
-        listar_servicos()
-        opcao = int(input("\nDigite o numero correspondente ao serviço a ser removido: "))
-        if 1 <= opcao <= len(servicos):
-
-            # Se a escolha estiver dentro da lista, faz a remoção do serviço e valida
-            servicos.pop(opcao - 1)
-            print("\nServiço removido com sucesso!")
+def remover_servico():
+    with oracledb.connect(dsn=dsn, user=usr, password=pwd) as conn:
+        cursor_oracle = conn.cursor()
+        
+        # Verifica se há serviços cadastrados
+        cursor_oracle.execute("SELECT COUNT(*) FROM tb_servico")
+        if cursor_oracle.fetchone()[0] == 0:
+            print("\nNão existem serviços cadastrados!")
             input("\nPressione Enter para continuar...")
             return
+
+    listar_servicos()  # Exibe a lista de serviços existentes
+    servico_id = input("\nDigite o ID do serviço que deseja remover: ")
+
+    with oracledb.connect(dsn=dsn, user=usr, password=pwd) as conn:
+        cursor_oracle = conn.cursor()
         
-        # Caso o que foi recebido não esteja na lista
-        else:
+        # Verifica se o serviço existe antes de tentar removê-lo
+        cursor_oracle.execute("SELECT COUNT(*) FROM tb_servico WHERE id_servico = :1", [servico_id])
+        if cursor_oracle.fetchone()[0] == 0:
             print("\nServiço não encontrado!")
             input("\nPressione Enter para continuar...")
-    
-    # Caso não existam serviços na lista
-    else:
-        print("\nNão existem serviços adicionados!")
+            return
+
+        # Remove o serviço
+        cursor_oracle.execute("DELETE FROM tb_servico WHERE id_servico = :1", [servico_id])
+        conn.commit()
+
+        print("\nServiço removido com sucesso!")
         input("\nPressione Enter para continuar...")
+
+# Exportar para Json
+def exportar_mecanicos_para_json():
+    with oracledb.connect(dsn=dsn, user=usr, password=pwd) as conn:
+        cursor_oracle = conn.cursor()
+        cursor_oracle.execute("SELECT id_mecanico, nome_mecanico, especialidade, telefone, email, horarios FROM tb_mecanico")
+        mecanicos = cursor_oracle.fetchall()
+        
+        if mecanicos:
+            lista_mecanicos = []
+            for id_mecanico, nome, especialidade, telefone, email, horarios in mecanicos:
+                mecanico_dict = {
+                    "id_mecanico": id_mecanico,
+                    "nome": nome,
+                    "especialidade": especialidade,
+                    "telefone": telefone,
+                    "email": email,
+                    "horarios": horarios.split(',')
+                }
+                lista_mecanicos.append(mecanico_dict)
+
+            # Salva a lista de mecânicos em um arquivo JSON
+            with open('mecanicos.json', 'w') as json_file:
+                json.dump(lista_mecanicos, json_file, indent=4)
+                
+            print("\nDados dos mecânicos exportados com sucesso para 'mecanicos.json'!")
+            input("\nPressione Enter para continuar...")
+        else:
+            print("\nNão existem mecânicos para exportar!")
+            input("\nPressione Enter para continuar...")
+
+def exportar_servicos_para_json():
+    with oracledb.connect(dsn=dsn, user=usr, password=pwd) as conn:
+        cursor_oracle = conn.cursor()
+        
+        # Consulta todos os serviços com os dados do mecânico
+        cursor_oracle.execute("""
+            SELECT s.id_servico, s.tema, s.descricao, TO_CHAR(s.data_servico, 'DD/MM/YYYY'), s.hora_servico, m.nome_mecanico 
+            FROM tb_servico s
+            INNER JOIN tb_mecanico m 
+            ON s.id_mecanico = m.id_mecanico
+        """)
+        servicos = cursor_oracle.fetchall()
+        
+        if servicos:
+            lista_servicos = []
+            for id_servico, tema, descricao, data, hora, nome_mecanico in servicos:
+                servico_dict = {
+                    "id_servico": id_servico,
+                    "tema": tema,
+                    "descricao": descricao,
+                    "data": data,
+                    "hora": hora,
+                    "mecanico_responsavel": nome_mecanico
+                }
+                lista_servicos.append(servico_dict)
+
+            # Salva a lista de serviços em um arquivo JSON
+            with open('servicos.json', 'w') as json_file:
+                json.dump(lista_servicos, json_file, indent=4)
+                
+            print("\nDados dos serviços exportados com sucesso para 'servicos.json'!")
+            input("\nPressione Enter para continuar...")
+        else:
+            print("\nNão existem serviços para exportar!")
+            input("\nPressione Enter para continuar...")
