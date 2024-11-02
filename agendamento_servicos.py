@@ -1,16 +1,30 @@
+'''
+NÃO ESQUEÇA DE CRIAR A TABELA PROF!!
+
+AQUI ESTÁ O SQL DE CRIAÇÃO PARA O SENHOR UTILIZAR NO BANCO:
+CREATE TABLE tb_mecanico (
+    id_mecanico INTEGER GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+    nome_mecanico VARCHAR(150), 
+    especialidade VARCHAR(150), 
+    telefone VARCHAR(15), 
+    email VARCHAR(50), 
+    horarios VARCHAR(500)
+)
+'''
+
 import os
 import re
 from datetime import datetime
 import json
 import time
+import oracledb
 
-# Tratamento dos dados
-with open(r'Base-Mecânicos/mecanicos.json', 'r', encoding='utf-8') as arquivo_json:
-    mecanicos = json.load(arquivo_json)
-
-for mecanico in mecanicos:
-    nome_alterado = mecanico['nome'].upper()
-    mecanico['nome'] = nome_alterado
+with open(r'arquivos_banco/secret.json', 'r') as secret:
+    credenciais = json.load(secret)
+    
+    usr = credenciais['user']
+    pwd = credenciais['password']
+    dsn = credenciais['dsn']
 
 servicos = []
 
@@ -184,127 +198,165 @@ def inserir_horarios(horarios): # Essa função realiza o processo auxiliar que 
             break
 
 # Funções para as opções do menu dos mecânicos
-def adicionar_mecanico(): # Essa função realiza o processo que adiciona um mecânico à lista. Ainda não tem integração com algum banco.
-    # Recebendo as informações pessoais do mecânico
-    nome = validar_nome("Digite o nome completo do novo mecânico: ")
-    especialidade = validar_especialidade("Digite a especialidade do mecânico (ex: Linha Diesel): ")
-    telefone = validar_telefone("Digite o telefone do mecânico com o DDD (ex: 11987654321): ")
-    email = validar_email("Digite o email do mecânico (ex: mecanico@email.com): ")
+def adicionar_mecanico():
+    campos = []
 
-    # Chama a função "inserir_horarios()" recebendo essa lista de horários para o mecânico.
+    nome = validar_nome("Digite o nome completo do novo mecânico: ")
+    campos.append(nome)
+
+    especialidade = validar_especialidade("Digite a especialidade do mecânico (ex: Linha Diesel): ")
+    campos.append(especialidade)
+
+    telefone = validar_telefone("Digite o telefone do mecânico com o DDD (ex: 11987654321): ")
+    campos.append(telefone)
+
+    email = validar_email("Digite o email do mecânico (ex: mecanico@email.com): ")
+    campos.append(email)
+
     print("\nHorario de atendimento disponível:")
     horarios = []
     inserir_horarios(horarios)
+    
+    horario_string = ''
+    for horario in horarios:
+        for k, v in horario.items():
+            horario_string += f'{k}: {v}, '
 
-    # Constrói um mecânico novo à partir dos dados inseridos.
-    mecanicos.append({"nome": nome, "especialidade": especialidade, "telefone": telefone.strip(), "email": email.strip(), "horarios": horarios})
+    horario_string = horario_string[:-2]
+    campos.append(horario_string)
 
-    # Validação do processo
+    sql_insert_mecanico = '''
+    INSERT INTO tb_mecanico (nome_mecanico, especialidade, telefone, email, horarios)
+    VALUES (:1, :2, :3, :4, :5)
+    '''
+
+    # Conecta ao banco e executa a inserção
+    with oracledb.connect(dsn=dsn, user=usr, password=pwd) as conn:
+        cursor_oracle = conn.cursor()
+        cursor_oracle.execute(sql_insert_mecanico, campos)
+        conn.commit()
+
     print("\nMecânico adicionado com sucesso!")
     input("\nPressione Enter para continuar...")
 
-    # with open(r'Base-Mecânicos/mecanicos.json', 'w', encoding='utf-8') as arquivo_json:
-    #     json.dump(mecanicos, arquivo_json)
+def listar_mecanicos():
+    with oracledb.connect(dsn=dsn, user=usr, password=pwd) as conn:
+        cursor_oracle = conn.cursor()
+        cursor_oracle.execute("SELECT id_mecanico, nome_mecanico, especialidade, telefone, email, horarios FROM tb_mecanico")
+        mecanicos = cursor_oracle.fetchall()
 
-def listar_mecanicos(): # Essa função lista os mecânicos existentes. 
-    # Verifica se existem mecânicos e exibe uma lista deles
-    if mecanicos:
-        print("\n| Mecânicos adicionados |")
-        contador = 1
-        for mecanico in mecanicos:
-            print(f"\nMecânico {contador}:")
-            print(f"Nome: {mecanico['nome']}")
-            print(f"Especialidade: {mecanico['especialidade']}")
-            print(f"Telefone: {mecanico['telefone']}")
-            print(f"Email: {mecanico['email']}")
-            print("Horários disponíveis:")
-            for horario in mecanico['horarios']:
-                print(f"  - {horario['dia_semana']}: Das {horario['inicio']} às {horario['fim']}")
-            contador += 1
-        
-        input("\nPressione Enter para continuar...")
-
-    # Caso não existam, faz a validação
-    else:
-        print("\nNão existem mecânicos adicionados!")
-        input("\nPressione Enter para continuar...")
-        
-def editar_mecanico(mecanico): # Essa função permite editar qualquer um dos mecânicos existentes (recebido via parâmetro).
-    # Exibe as informações atuais do mecânico
-    print(f"\n1) Mecânico: {mecanico['nome']}")
-    print(f"2) Especialidade: {mecanico['especialidade']}")
-    print(f"3) Telefone: {mecanico['telefone']}")
-    print(f"4) Email: {mecanico['email']}")
-    print("Horários disponíveis:")
-    for horario in mecanico['horarios']:
-        print(f" - {horario['dia_semana']}: Das {horario['inicio']} às {horario['fim']}")
-
-    print("\nEscolha o número do campo que deseja editar (Para mais de um campo, separe por vírgulas")
-    campos = input("Campo(s): ")
-    campos = campos.replace(" ", "")
-
-    if "," in campos:
-        campos = campos.split(",")
-
-    if not isinstance(campos, list):
-        list(campos)
-
-    for opcao in campos:
-        if opcao == '1':
-            # Permite a alteração de cada informação pessoal
-            novo_nome = validar_nome("Digite o novo nome do mecânico: ")
-            mecanico['nome'] = novo_nome
-
-        elif opcao == '2':
-            nova_especialidade = validar_especialidade("Digite a nova especialidade do mecânico: ")
-            mecanico['especialidade'] = nova_especialidade
-
-        elif opcao == '3':
-            novo_telefone = validar_telefone("Digite o novo telefone do mecânico: ")
-            mecanico['telefone'] = novo_telefone
-
-        elif opcao == '4':
-            novo_email = validar_email("Digite o novo email do mecânico: ")
-            mecanico['email'] = novo_email
-        
+        if mecanicos:
+            print("\n| Mecânicos adicionados |")
+            contador = 1
+            for id_mecanico, nome, especialidade, telefone, email, horarios in mecanicos:
+                print(f"\nMecânico {id_mecanico}:")
+                print(f"Nome: {nome}")
+                print(f"Especialidade: {especialidade}")
+                print(f"Telefone: {telefone}")
+                print(f"Email: {email}")
+                print("Horários disponíveis:")
+                for horario in horarios.split(','):
+                    print(f"  - {horario.strip()}")
+                contador += 1
+            input("\nPressione Enter para continuar...")
         else:
-            print("Opção inválida. Escolha uma opção válida.")
+            print("\nNão existem mecânicos adicionados!")
+            input("\nPressione Enter para continuar...")
+        
+def editar_mecanico():
+    with oracledb.connect(dsn=dsn, user=usr, password=pwd) as conn:
+        cursor_oracle = conn.cursor()
+        cursor_oracle.execute("SELECT COUNT(*) FROM tb_mecanico")
+        if cursor_oracle.fetchone()[0] == 0:
+            print("\nNão existem mecânicos cadastrados!")
+            input("\nPressione Enter para continuar...")
+            return
 
-    # Faz a validação
-    print("\nServiço atualizado com sucesso!")
-    input("\nPressione Enter para continuar...")
+    listar_mecanicos()
+    mecanico_id = input("\nDigite o ID do mecânico que deseja editar: ")
 
-    # with open(r'Base-Mecânicos/mecanicos.json', 'w', encoding='utf-8') as arquivo_json:
-    #     json.dump(mecanicos, arquivo_json)
+    with oracledb.connect(dsn=dsn, user=usr, password=pwd) as conn:
+        cursor_oracle = conn.cursor()
+        
+        # Recupera o mecânico selecionado
+        cursor_oracle.execute("SELECT nome_mecanico, especialidade, telefone, email, horarios FROM tb_mecanico WHERE id_mecanico = :1", [mecanico_id])
+        mecanico = cursor_oracle.fetchone()
+        
+        if not mecanico:
+            print("Mecânico não encontrado.")
+            input("\nPressione Enter para continuar...")
+            return
 
-def remover_mecanico(): # Essa função permite remover qualquer um dos mecânicos existentes.
-    # Se existerem mecânicos pede o nome do mecânico à ser removido
-    if mecanicos:
-        print("\nMecânicos disponíveis:")
-        contador = 1
-        for mecanico in mecanicos:
-            print(f"    => Mecânico {contador} - {mecanico['nome']}")
-            contador += 1
-        while True:
-            escolha_mecanico = input("\nDigite o número do mecânico que deseja remover: ")
-            if escolha_mecanico.isdigit():
-                escolha_mecanico = int(escolha_mecanico)
-                if 1 <= escolha_mecanico <= len(mecanicos):
-                    mecanico_escolhido = mecanicos[escolha_mecanico - 1]
-                    mecanicos.remove(mecanico_escolhido)
-                    print("\nMecânico removido com sucesso!")
-                    input("\nPressione Enter para continuar...")
+        nome, especialidade, telefone, email, horarios = mecanico
 
-                    # with open(r'Base-Mecânicos/mecanicos.json', 'w', encoding='utf-8') as arquivo_json:
-                    #     json.dump(mecanicos, arquivo_json)
-                    return
-                else:
-                    print("\nOpção inválida. Digite um número válido da lista.")
-            else:
-                print("\nEntrada inválida. Digite apenas números inteiros.")
-    else:
-        print("\nNão existem mecânicos cadastrados!")
-        input("\nPressione Enter para continuar...") 
+        print(f"\n1) Nome: {nome}")
+        print(f"2) Especialidade: {especialidade}")
+        print(f"3) Telefone: {telefone}")
+        print(f"4) Email: {email}")
+        print(f"5) Horários: {horarios}")
+
+        campos = input("\nEscolha o número do campo que deseja editar (separado por vírgulas): ").replace(" ", "").split(",")
+        novos_valores = []
+
+        for opcao in campos:
+            if opcao == '1':
+                novo_nome = validar_nome("Digite o novo nome do mecânico: ")
+                novos_valores.append(("nome_mecanico", novo_nome))
+
+            elif opcao == '2':
+                nova_especialidade = validar_especialidade("Digite a nova especialidade do mecânico: ")
+                novos_valores.append(("especialidade", nova_especialidade))
+
+            elif opcao == '3':
+                novo_telefone = validar_telefone("Digite o novo telefone do mecânico: ")
+                novos_valores.append(("telefone", novo_telefone))
+
+            elif opcao == '4':
+                novo_email = validar_email("Digite o novo email do mecânico: ")
+                novos_valores.append(("email", novo_email))
+
+            elif opcao == '5':
+                novos_horarios = []
+                inserir_horarios(novos_horarios)
+                horario_string = ', '.join([f"{k}: {v}" for h in novos_horarios for k, v in h.items()])
+                novos_valores.append(("horarios", horario_string))
+
+        # Executa a atualização para cada campo alterado
+        for campo, valor in novos_valores:
+            cursor_oracle.execute(f"UPDATE tb_mecanico SET {campo} = :1 WHERE id_mecanico = :2", [valor, mecanico_id])
+
+        conn.commit()
+        print("\nMecânico atualizado com sucesso!")
+        input("\nPressione Enter para continuar...")
+
+def remover_mecanico():
+    with oracledb.connect(dsn=dsn, user=usr, password=pwd) as conn:
+        cursor_oracle = conn.cursor()
+        cursor_oracle.execute("SELECT COUNT(*) FROM tb_mecanico")
+        if cursor_oracle.fetchone()[0] == 0:
+            print("\nNão existem mecânicos cadastrados!")
+            input("\nPressione Enter para continuar...")
+            return
+
+    listar_mecanicos()
+    mecanico_id = input("\nDigite o ID do mecânico que deseja remover: ")
+
+    with oracledb.connect(dsn=dsn, user=usr, password=pwd) as conn:
+        cursor_oracle = conn.cursor()
+
+        # Verifica se o mecânico existe antes de tentar removê-lo
+        cursor_oracle.execute("SELECT COUNT(*) FROM tb_mecanico WHERE id_mecanico = :1", [mecanico_id])
+        if cursor_oracle.fetchone()[0] == 0:
+            print("\nMecânico não encontrado!")
+            input("\nPressione Enter para continuar...")
+            return
+
+        # Remove o mecânico
+        cursor_oracle.execute("DELETE FROM tb_mecanico WHERE id_mecanico = :1", [mecanico_id])
+        conn.commit()
+
+        print("\nMecânico removido com sucesso!")
+        input("\nPressione Enter para continuar...")
 
 # Funcionalidades do programa
 def validar_tema(texto_input):  

@@ -14,27 +14,7 @@ def menu():
                 elif opcao_mecanicos == '3':
                     agendamento_servicos.remover_mecanico()
                 elif opcao_mecanicos == '4':
-                    if agendamento_servicos.mecanicos:
-                        print("\nMecânicos disponíveis:")
-                        contador = 1
-                        for mecanico in agendamento_servicos.mecanicos:
-                            print(f"    => Mecânico {contador} - {mecanico['nome']}")
-                            contador += 1
-                        while True:
-                            escolha_mecanico = input("\nDigite o número do mecânico que deseja editar: ")
-                            if escolha_mecanico.isdigit():
-                                escolha_mecanico = int(escolha_mecanico)
-                                if 1 <= escolha_mecanico <= len(agendamento_servicos.mecanicos):
-                                    mecanico_escolhido = agendamento_servicos.mecanicos[escolha_mecanico - 1]
-                                    agendamento_servicos.editar_mecanico(mecanico_escolhido)
-                                    break
-                                else:
-                                    print("\nOpção inválida. Digite um número válido da lista.")
-                            else:
-                                print("\nEntrada inválida. Digite um número inteiro.")
-                    else:
-                        print("\nNão existem mecânicos cadastrados!")
-                        input("\nPressione Enter para retornar...")
+                    agendamento_servicos.editar_mecanico()
                 elif opcao_mecanicos == '5':
                     break
                 elif opcao_mecanicos == '6':
