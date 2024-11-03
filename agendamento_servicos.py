@@ -4,6 +4,10 @@ from datetime import datetime
 import json
 import time
 import oracledb
+import smtplib
+from email.mime.text import MIMEText
+from email.mime.multipart import MIMEMultipart
+import requests
 
 '''
 NÃO ESQUEÇA DE CRIAR A TABELA PROF!!
@@ -15,7 +19,8 @@ CREATE TABLE tb_mecanico (
     especialidade VARCHAR(150), 
     telefone VARCHAR(15), 
     email VARCHAR(50), 
-    horarios VARCHAR(500)
+    horarios VARCHAR(500),
+    endereco VARCHAR(500)
 )
 
 CREATE TABLE tb_servico (
@@ -37,6 +42,9 @@ with open(r'arquivos_banco/secret.json', 'r') as secret:
     dsn = credenciais['dsn']
 
 servicos = []
+
+sender_email = 'faditfiap@gmail.com'
+sender_password = 'qxkw ohlj oqdy fwiu'
 
 # Funções para a exibição dos menus
 def exibir_menu_principal():
@@ -209,6 +217,26 @@ def inserir_horarios(horarios): # Essa função realiza o processo auxiliar que 
         if adicionar_mais == 'n':
             break
 
+def validar_cep(texto_input):
+    cep = input(texto_input).strip().replace("-", "")
+    cep_digito = cep.isdigit()
+    while cep_digito == False:
+        print("Válido apenas números ou traços!")
+        cep = input(texto_input).strip().replace("-", "")
+        cep_digito = cep.isdigit()
+    return cep.strip()
+
+def consultar_cep(cep):
+    try:
+        response = requests.get(f'https://viacep.com.br/ws/{cep}/json/')
+        if response.status_code == 200:
+            return response.json()
+        else:
+            print("Erro ao consultar o CEP.")
+    except Exception as e:
+        print(f"Erro ao conectar na API de CEP: {e}")
+    return None
+      
 # Funções para as opções do menu dos mecânicos
 def adicionar_mecanico():
     campos = []
@@ -237,9 +265,24 @@ def adicionar_mecanico():
     horario_string = horario_string[:-2]
     campos.append(horario_string)
 
+    cep = validar_cep("Digite o CEP do mecânico ou da oficina que se encontra (ex: 00000-000): ")
+    endereco = consultar_cep(cep)
+    del endereco['unidade']
+    del endereco['complemento']
+    del endereco['ibge']
+    del endereco['gia']
+    del endereco['siafi']
+        
+    endereco_string = ''
+    for k, v in endereco.items():
+        endereco_string += f'{k}: {v}, '
+
+    endereco_string = endereco_string[:-2]
+    campos.append(endereco_string)
+
     sql_insert_mecanico = '''
-    INSERT INTO tb_mecanico (nome_mecanico, especialidade, telefone, email, horarios)
-    VALUES (:1, :2, :3, :4, :5)
+    INSERT INTO tb_mecanico (nome_mecanico, especialidade, telefone, email, horarios, endereco)
+    VALUES (:1, :2, :3, :4, :5, :6)
     '''
 
     # Conecta ao banco e executa a inserção
@@ -254,22 +297,23 @@ def adicionar_mecanico():
 def listar_mecanicos():
     with oracledb.connect(dsn=dsn, user=usr, password=pwd) as conn:
         cursor_oracle = conn.cursor()
-        cursor_oracle.execute("SELECT id_mecanico, nome_mecanico, especialidade, telefone, email, horarios FROM tb_mecanico")
+        cursor_oracle.execute("SELECT id_mecanico, nome_mecanico, especialidade, telefone, email, horarios, endereco FROM tb_mecanico")
         mecanicos = cursor_oracle.fetchall()
 
         if mecanicos:
             print("\n| Mecânicos adicionados |")
-            contador = 1
-            for id_mecanico, nome, especialidade, telefone, email, horarios in mecanicos:
-                print(f"\nMecânico {id_mecanico}:")
+            for id_mecanico, nome, especialidade, telefone, email, horarios, endereco in mecanicos:
+                print(f"\nMecânico ID: {id_mecanico}")
                 print(f"Nome: {nome}")
                 print(f"Especialidade: {especialidade}")
                 print(f"Telefone: {telefone}")
                 print(f"Email: {email}")
-                print("Horários disponíveis:")
+                print("\nEndereço:")
+                for i in endereco.split(","):
+                    print(f"  => {i.strip()}")
+                print("\nHorários disponíveis:")
                 for horario in horarios.split(','):
                     print(f"  - {horario.strip()}")
-                contador += 1
             input("\nPressione Enter para continuar...")
         else:
             print("\nNão existem mecânicos adicionados!")
@@ -356,9 +400,10 @@ def remover_mecanico():
         confirmacao = input("Tem certeza que deseja remover este mecânico? (s/n): ").strip().lower()
 
         if confirmacao == 's':
+            cursor_oracle.execute("DELETE FROM tb_servico WHERE id_mecanico = :1", [mecanico_id])
             cursor_oracle.execute("DELETE FROM tb_mecanico WHERE id_mecanico = :1", [mecanico_id])
             conn.commit()
-            print("\nMecânico removido com sucesso!")
+            print("\nMecânico e seus serviços removidos com sucesso!")
         else:
             print("\nOperação de remoção cancelada.")
 
@@ -451,19 +496,21 @@ def adicionar_servico():
         cursor_oracle = conn.cursor()
         
         # Listar mecânicos disponíveis
-        cursor_oracle.execute("SELECT id_mecanico, nome_mecanico FROM tb_mecanico")
+        cursor_oracle.execute("SELECT id_mecanico, nome_mecanico, email FROM tb_mecanico")
         mecanicos = cursor_oracle.fetchall()
         
         if mecanicos:
             print("\nMecânicos disponíveis:")
-            for id, (id_mecanico, nome) in enumerate(mecanicos, start=1):
-                print(f"    => Mecânico {id} - {nome}")
+            for id, (id_mecanico, nome, email) in enumerate(mecanicos, start=1):
+                print(f"    => Mecânico {id} - {nome} (Email: {email})")
             
             # Solicita a escolha do mecânico
             while True:
                 escolha_mecanico = input("\nDigite o número do mecânico escolhido: ")
                 if escolha_mecanico.isdigit() and 1 <= int(escolha_mecanico) <= len(mecanicos):
                     id_mecanico_escolhido = mecanicos[int(escolha_mecanico) - 1][0]
+                    nome = mecanicos[int(escolha_mecanico) - 1][1]
+                    email_mecanico = mecanicos[int(escolha_mecanico) - 1][2]
                     break
                 else:
                     print("\nOpção inválida. Digite um número válido da lista.")
@@ -475,14 +522,44 @@ def adicionar_servico():
             hora = validar_hora("Digite a hora da realização do serviço (ex: HH:MM): ")
 
             # Insere o serviço no banco
-            cursor_oracle.execute("""
-                INSERT INTO tb_servico (tema, descricao, data_servico, hora_servico, id_mecanico)
-                VALUES (:tema, :descricao, TO_DATE(:data, 'DD/MM/YYYY'), :hora, :id_mecanico)
+            cursor_oracle.execute(""" 
+                INSERT INTO tb_servico (tema, descricao, data_servico, hora_servico, id_mecanico) 
+                VALUES (:tema, :descricao, TO_DATE(:data, 'DD/MM/YYYY'), :hora, :id_mecanico) 
             """, [tema, descricao, data, hora, id_mecanico_escolhido])
 
             conn.commit()
             print("\nServiço adicionado com sucesso!")
-            input("\nPressione Enter para continuar...")
+
+            # Enviar e-mail ao mecânico
+            msg = MIMEMultipart()
+            msg['From'] = sender_email
+            msg['To'] = email_mecanico
+            msg['Subject'] = f"Novo Serviço Agendado: {tema}"
+
+            body = f"""
+            Olá, {nome}!
+
+            Você tem um novo serviço agendado:
+            Tema: {tema}
+            Descrição: {descricao}
+            Data: {data}
+            Hora: {hora}
+
+            Atenciosamente,
+            Portal AutoCare
+            """
+            msg.attach(MIMEText(body, 'plain'))
+
+            try:
+                with smtplib.SMTP('smtp.gmail.com', 587) as server:
+                    server.starttls()
+                    server.login(sender_email, sender_password)
+                    server.send_message(msg)
+                print("Notificação de e-mail enviada ao mecânico!")
+                input("\nPressione Enter para continuar...")
+            except Exception as e:
+                print(f"Erro ao enviar e-mail: {e}")
+                input("\nPressione Enter para continuar...")
         
         else:
             print("\nNão existem mecânicos cadastrados!")
@@ -492,7 +569,6 @@ def listar_servicos():
     with oracledb.connect(dsn=dsn, user=usr, password=pwd) as conn:
         cursor_oracle = conn.cursor()
         
-        # Consulta todos os serviços com os dados do mecânico
         cursor_oracle.execute("""
             SELECT s.id_servico, s.tema, s.descricao, TO_CHAR(s.data_servico, 'DD/MM/YYYY'), s.hora_servico, m.nome_mecanico 
             FROM tb_servico s
@@ -503,8 +579,8 @@ def listar_servicos():
         
         if servicos:
             print("\n| Serviços adicionados |")
-            for id, (id_servico, tema, descricao, data, hora, nome_mecanico) in enumerate(servicos, start=1):
-                print(f"\nServiço {id}:")
+            for id_servico, tema, descricao, data, hora, nome_mecanico in servicos:
+                print(f"\nServiço ID: {id_servico}")
                 print(f"Tema: {tema}")
                 print(f"Descrição: {descricao}")
                 print(f"Dia {data} às {hora}")
@@ -558,21 +634,21 @@ def editar_servico():
 
         for opcao in campos:
             if opcao == '1':
-                novo_tema = validar_tema("Digite o novo tema do serviço: ")
-                novos_valores.append(("tema", novo_tema))
+                tema = validar_tema("Digite o novo tema do serviço: ")
+                novos_valores.append(("tema", tema))
             elif opcao == '2':
-                nova_descricao = validar_descricao("Digite a nova descrição do serviço: ")
-                novos_valores.append(("descricao", nova_descricao))
+                descricao = validar_descricao("Digite a nova descrição do serviço: ")
+                novos_valores.append(("descricao", descricao))
             elif opcao == '3':
-                nova_data = validar_data("Digite a nova data do serviço (DD/MM/AAAA): ")
-                novos_valores.append(("data_servico", nova_data))
+                data = validar_data("Digite a nova data do serviço (DD/MM/AAAA): ")
+                novos_valores.append(("data_servico", data))
             elif opcao == '4':
-                nova_hora = validar_hora("Digite a nova hora do serviço (HH:MM): ")
-                novos_valores.append(("hora_servico", nova_hora))
+                hora = validar_hora("Digite a nova hora do serviço (HH:MM): ")
+                novos_valores.append(("hora_servico", hora))
             elif opcao == '5':
                 listar_mecanicos()
-                novo_id_mecanico = input("Digite o novo ID do mecânico responsável: ")
-                novos_valores.append(("id_mecanico", novo_id_mecanico))
+                id_mecanico = input("Digite o novo ID do mecânico responsável: ")
+                novos_valores.append(("id_mecanico", id_mecanico))
 
         # Executa a atualização para cada campo alterado
         for campo, valor in novos_valores:
@@ -580,7 +656,41 @@ def editar_servico():
 
         conn.commit()
         print("\nServiço atualizado com sucesso!")
-        input("\nPressione Enter para continuar...")
+
+        # Atualiza o e-mail com as informações novas
+        cursor_oracle.execute("SELECT email FROM tb_mecanico WHERE id_mecanico = :1", [id_mecanico])
+        email_mecanico = cursor_oracle.fetchone()[0]
+
+        # Prepare o e-mail com os dados atualizados
+        msg = MIMEMultipart()
+        msg['From'] = sender_email
+        msg['To'] = email_mecanico
+        msg['Subject'] = f"Serviço Editado: {tema}"
+
+        body = f"""
+        Olá!
+
+        O serviço foi editado:
+        Tema: {tema}
+        Descrição: {descricao}
+        Nova Data: {data}
+        Nova Hora: {hora}
+
+        Atenciosamente,
+        Portal AutoCare
+        """
+        msg.attach(MIMEText(body, 'plain'))
+
+        try:
+            with smtplib.SMTP('smtp.gmail.com', 587) as server:
+                server.starttls()
+                server.login(sender_email, sender_password)
+                server.send_message(msg)
+            print("Notificação de e-mail enviada ao mecânico!")
+            input("\nPressione Enter para continuar...")
+        except Exception as e:
+            print(f"Erro ao enviar e-mail: {e}")
+            input("\nPressione Enter para continuar...")
 
 def remover_servico():
     with oracledb.connect(dsn=dsn, user=usr, password=pwd) as conn:
