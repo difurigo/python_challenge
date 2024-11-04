@@ -23,8 +23,8 @@ def menu():
                     agendamento_servicos.sair_do_programa()
                     exit()
                 else:
-                    print("\nOpção inválida!")
-                    input("\nPressione Enter para retornar...")
+                    print('\nOpção inválida!')
+                    input('\nPressione Enter para retornar...')
 
         elif opcao == '2':
             while True:
@@ -45,16 +45,16 @@ def menu():
                     agendamento_servicos.sair_do_programa()
                     exit()
                 else:
-                    print("\nOpção inválida!")
-                    input("\nPressione Enter para retornar...")
+                    print('\nOpção inválida!')
+                    input('\nPressione Enter para retornar...')
 
         elif opcao == '3':
             agendamento_servicos.sair_do_programa()
             break
         else:
             quantidade_opcoes_menu_principal = 3
-            print(f"\nOpção inválida! Selecione uma das {quantidade_opcoes_menu_principal} opcões.")
-            input("\nPressione Enter para retornar...")
+            print(f'\nOpção inválida! Selecione uma das {quantidade_opcoes_menu_principal} opcões.')
+            input('\nPressione Enter para retornar...')
             
 if __name__ == '__main__':
     menu()
